@@ -1,0 +1,23 @@
+{
+  "name": "auth-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "cd client && npm run dev",
+    "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run start:dev\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vakulanikita/auth-app.git"
+  },
+  "author": "Nikita",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vakulanikita/auth-app/issues"
+  },
+  "homepage": "https://github.com/vakulanikita/auth-app#readme",
+  "devDependencies": {
+    "concurrently": "^7.3.0"
+  }
+}
