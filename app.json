@@ -1,6 +1,6 @@
 {
-  "name": "Auth app",
-  "description": "description",
+  "name": "ToolJet",
+  "description": "ToolJet is an open-source low-code framework to build and deploy internal tools.",
   "website": "https://tooljet.io/",
   "repository": "https://github.com/tooljet/tooljet",
   "logo": "https://app.tooljet.io/assets/images/logo.svg",
