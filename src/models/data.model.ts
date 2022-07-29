@@ -6,9 +6,14 @@ export enum StatusEnum {
 }
 
 export enum CategoryEnum {
-  Bug = "bug",
-  Enhancement = "enhancement",
-  Feature = "feature",
-  Ui = "ui",
-  Ux = "ux",
+  Bug = 'bug',
+  Enhancement = 'enhancement',
+  Feature = 'feature',
+  Ui = 'ui',
+  Ux = 'ux',
+}
+
+export enum UserStatusEnum {
+  Active = 'active',
+  NotActive = 'notActive',
 }
