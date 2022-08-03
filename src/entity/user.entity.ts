@@ -15,7 +15,16 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserStatusEnum,
-    default: UserStatusEnum.NotActive
+    default: UserStatusEnum.NotActive,
   })
-  status: string
+  status: string;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column()
+  securityPinCode: number;
 }

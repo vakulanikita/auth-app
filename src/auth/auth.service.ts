@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entity/user.entity';
 import { InsertResult, DeleteResult, Repository } from 'typeorm';
 import { AuthDto } from './dto';
+import { MailService } from './../mail/mail.service';
 
 // eslint-disable-next-line
 // const users = require('../users.json');
@@ -13,6 +14,7 @@ export class AuthService {
     @Inject('USERS_REPOSITORY')
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    private mailService: MailService
   ) {}
 
   async getUsers(): Promise<User[]> {
@@ -36,6 +38,8 @@ export class AuthService {
   }
 
   async addUser(user: User): Promise<InsertResult> {
+    user.securityPinCode = 112211
+    await this.mailService.sendUserConfirmation(user, '123')
     return this.usersRepository.insert(user);
   }
 
