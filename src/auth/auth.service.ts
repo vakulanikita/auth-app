@@ -14,7 +14,7 @@ export class AuthService {
     @Inject('USERS_REPOSITORY')
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
-    private mailService: MailService
+    private mailService: MailService,
   ) {}
 
   async getUsers(): Promise<User[]> {
@@ -38,8 +38,9 @@ export class AuthService {
   }
 
   async addUser(user: User): Promise<InsertResult> {
-    user.securityPinCode = 112211
-    await this.mailService.sendUserConfirmation(user, '123')
+    const securityPinCode = Math.floor(100000 + Math.random() * 900000);
+    user.securityPinCode = securityPinCode;
+    await this.mailService.sendUserConfirmationPinCode(user, securityPinCode);
     return this.usersRepository.insert(user);
   }
 
@@ -50,6 +51,15 @@ export class AuthService {
     }
     await this.usersRepository.update(id, user);
     return this.findOneById(id);
+  }
+
+  async updateByEmail(email: string, user: User): Promise<User> {
+    const userToUpdate = await this.findOneByEmail(email);
+    if (userToUpdate === undefined) {
+      throw new NotFoundException();
+    }
+    await this.usersRepository.update(userToUpdate.id, user);
+    return this.findOneByEmail(email);
   }
 
   async delete(id: number): Promise<DeleteResult> {
@@ -63,6 +73,7 @@ export class AuthService {
   async signinLocal(dto: AuthDto) {
     // retrieve user
     const user = await this.findOneByEmail(dto.email);
+    console.log(dto);
     if (!user) throw new UnauthorizedException('Credentials incorrect');
     if (user.password !== dto.password) throw new UnauthorizedException('Credentials incorrect');
     return this.signUser(user.id, user.email, 'user');
@@ -72,7 +83,29 @@ export class AuthService {
     return this.jwtService.sign({
       sub: userId,
       email,
-      type
+      type,
     });
+  }
+
+  async confirmUser(pinCode: number, email: string) {
+    const userToConfirm = await this.findOneByEmail(email);
+    if (userToConfirm === undefined) {
+      throw new NotFoundException();
+    }
+    console.log(userToConfirm);
+    userToConfirm.status = 'active';
+    console.log(userToConfirm);
+    if (userToConfirm.securityPinCode === pinCode) {
+      this.updateByEmail(email, userToConfirm);
+      return {
+        status: 'success',
+      };
+    }
+
+    return {
+      status: 'failure',
+    };
+
+    // return this.findOneByEmail(email);
   }
 }

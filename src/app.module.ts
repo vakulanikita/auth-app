@@ -5,6 +5,7 @@ import { RouterModule } from '@nestjs/core';
 import { PostsModule } from './posts/posts.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -21,6 +22,9 @@ import { MailModule } from './mail/mail.module';
       },
     ]),
     MailModule,
+    ConfigModule.forRoot({
+      isGlobal: true, // no need to import into other modules
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

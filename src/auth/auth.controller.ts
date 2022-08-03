@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto';
+import { AuthDto, ConfirmationDto } from './dto';
 import { User } from 'src/entity/user.entity';
 import { GetCurrentUserById } from 'src/utils';
 import { JwtAuthGuard } from 'src/utils/guards/jwt-guard.guard';
@@ -20,28 +20,33 @@ export class AuthController {
     return this.authService.getUsers();
   }
 
-  @Get(':id')
-  getOneUser(@Param('id') id: string): Promise<User> {
-    return this.authService.findOneById(+id);
-  }
+  // @Get(':id')
+  // getOneUser(@Param('id') id: string): Promise<User> {
+  //   return this.authService.findOneById(+id);
+  // }
 
-  @Post()
+  @Post('signup')
   createUser(@Body() user: User) {
     return this.authService.addUser(user);
-  }
-
-  @Patch(':id')
-  updateUser(@Param('id') id: string, @Body() post: User): Promise<User> {
-    return this.authService.update(+id, post);
-  }
-
-  @Delete(':id')
-  deleteUser(@Param('id') id: string) {
-    return this.authService.delete(+id);
   }
 
   @Post('login')
   signinLocal(@Body() dto: AuthDto) {
     return this.authService.signinLocal(dto);
+  }
+
+  @Post('confirmation')
+  confirmAccount(@Body() dto: ConfirmationDto): object {
+    return this.authService.confirmUser(dto.pinCode, dto.email);
+  }
+
+  @Patch(':id')
+  updateUser(@Param('id') id: string, @Body() user: User): Promise<User> {
+    return this.authService.update(+id, user);
+  }
+
+  @Delete(':id')
+  deleteUser(@Param('id') id: string) {
+    return this.authService.delete(+id);
   }
 }
