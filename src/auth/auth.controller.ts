@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto, ConfirmationDto } from './dto';
+import { AuthDto, ConfirmationDto, ResendDto } from './dto';
 import { User } from 'src/entity/user.entity';
 import { GetCurrentUserById } from 'src/utils';
 import { JwtAuthGuard } from 'src/utils/guards/jwt-guard.guard';
@@ -11,8 +11,13 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  getUser(@GetCurrentUserById() userId: number): Promise<User> {
-    return this.authService.findOneById(userId);
+  getUser(@GetCurrentUserById() userId: number): object {
+    const user = this.authService.findOneById(userId).then((res) => {
+      const { email, firstName, lastName } = res;
+      return { email, firstName, lastName };
+    });
+
+    return user;
   }
 
   @Get()
@@ -38,6 +43,11 @@ export class AuthController {
   @Post('confirmation')
   confirmAccount(@Body() dto: ConfirmationDto): object {
     return this.authService.confirmUser(dto.pinCode, dto.email);
+  }
+
+  @Post('resend')
+  resendConfirmEmail(@Body() dto: ResendDto) {
+    return this.authService.resendConfirmEmail(dto.email);
   }
 
   @Patch(':id')

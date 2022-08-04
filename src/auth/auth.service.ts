@@ -5,9 +5,6 @@ import { InsertResult, DeleteResult, Repository } from 'typeorm';
 import { AuthDto } from './dto';
 import { MailService } from './../mail/mail.service';
 
-// eslint-disable-next-line
-// const users = require('../users.json');
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -37,11 +34,27 @@ export class AuthService {
     });
   }
 
-  async addUser(user: User): Promise<InsertResult> {
+  async addUser(user: User) {
+    const userToCreate = await this.findOneByEmail(user.email);
+    if (userToCreate?.status === 'active') {
+      return {
+        status: 'failure',
+      };
+    }
     const securityPinCode = Math.floor(100000 + Math.random() * 900000);
     user.securityPinCode = securityPinCode;
     await this.mailService.sendUserConfirmationPinCode(user, securityPinCode);
-    return this.usersRepository.insert(user);
+
+    if (userToCreate?.status === 'notActive') {
+      userToCreate.securityPinCode = securityPinCode
+      await this.usersRepository.update(userToCreate.id, userToCreate);
+    } else {
+      await this.usersRepository.insert(user);
+    }
+
+    return {
+      status: 'success',
+    };
   }
 
   async update(id: number, user: User): Promise<User> {
@@ -73,17 +86,22 @@ export class AuthService {
   async signinLocal(dto: AuthDto) {
     // retrieve user
     const user = await this.findOneByEmail(dto.email);
-    console.log(dto);
+    // console.log(dto);
     if (!user) throw new UnauthorizedException('Credentials incorrect');
     if (user.password !== dto.password) throw new UnauthorizedException('Credentials incorrect');
-    return this.signUser(user.id, user.email, 'user');
+    if(user.status === "notActive") {
+      await this.mailService.sendUserConfirmationPinCode(user, user.securityPinCode);
+      return {
+        status: "notActive"
+      }
+    }
+    return this.signUser(user.id, user.email);
   }
 
-  signUser(userId: number, email: string, type: string) {
+  signUser(userId: number, email: string) {
     return this.jwtService.sign({
       sub: userId,
       email,
-      type,
     });
   }
 
@@ -92,20 +110,25 @@ export class AuthService {
     if (userToConfirm === undefined) {
       throw new NotFoundException();
     }
-    console.log(userToConfirm);
-    userToConfirm.status = 'active';
-    console.log(userToConfirm);
     if (userToConfirm.securityPinCode === pinCode) {
+      userToConfirm.status = 'active';
       this.updateByEmail(email, userToConfirm);
-      return {
-        status: 'success',
-      };
+      return this.signUser(userToConfirm.id, userToConfirm.email);
     }
 
     return {
       status: 'failure',
     };
+  }
 
-    // return this.findOneByEmail(email);
+  async resendConfirmEmail(email: string) {
+    const user = await this.findOneByEmail(email);
+    if (user === undefined) {
+      throw new NotFoundException();
+    }
+    const securityPinCode = Math.floor(100000 + Math.random() * 900000);
+    user.securityPinCode = securityPinCode;
+    await this.mailService.sendUserConfirmationPinCode(user, securityPinCode);
+    return await this.updateByEmail(email, user);
   }
 }

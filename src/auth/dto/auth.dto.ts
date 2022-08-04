@@ -7,3 +7,7 @@ export class ConfirmationDto {
   email: string;
   pinCode: number;
 }
+
+export class ResendDto {
+  email: string;
+}
